@@ -13,6 +13,6 @@ g=100
 
 I=20
 
-plt.plot(B, 1-(np.sin(0.05*B)*(I*g**2/((B-B0)**2+g**2)))**2)   
+plt.plot(B, 1-(np.sin(0.03*B)*(I*g**2/((B-B0)**2+g**2)))**2)   
 
 plt.show()  
