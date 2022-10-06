@@ -85,30 +85,48 @@ def R1_t_model3(B,t_cf,t_cb,pb,A): #Total T1 relaxation Model 3 from Ziqing Wang
 
 def R1_t_model1_CH2(B,t_cf,t_cb,pbA): #Total T1 relaxation Model 1 for CH2 group
     w=B*gamma
-    b_hh=-mu0/pi*h_bar*gamma**2/r_hh**3
-    A_CH2=3/32*b_hh**2
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
 
     def J(w,t_c): 
-        return 2/5*t_c/(1+w**2*t_c**2)
+        return t_c/(1+w**2*t_c**2)
 
-    return A_CH2*(J(w,t_cf)+4*J(2*w,t_cf))+pbA*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+pbA*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))
+
 
 def R1_t_model2_CH2(B,t_cf,t_cb,pb,A): #Total T1 relaxation Model 2 for CH2 group
     w=B*gamma
-    b_hh=-mu0/pi*h_bar*gamma**2/r_hh**3
-    A_CH2=3/32*b_hh**2
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
 
     def J(w,t_c): 
-        return 2/5*t_c/(1+w**2*t_c**2)
+        return t_c/(1+w**2*t_c**2)
 
-    return (1-pb)*A_CH2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*(A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))+A_CH2*(J(w,t_cb)+4*J(2*w,t_cb)))
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*(A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))+3/10*b_hh**2*(J(w,t_cb)+4*J(2*w,t_cb)))
 
 def R1_t_model3_CH2(B,t_cf,t_cb,pb): #Total T1 relaxation Model 3 for CH2 group
     w=B*gamma
-    b_hh=-mu0/pi*h_bar*gamma**2/r_hh**3
-    A_CH2=3/32*b_hh**2
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
 
     def J(w,t_c): 
-        return 2/5*t_c/(1+w**2*t_c**2)
+        return t_c/(1+w**2*t_c**2)
 
-    return (1-pb)*A_CH2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*A_CH2*(J(w,t_cb)+4*J(2*w,t_cb))
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*3/10*b_hh**2*(J(w,t_cb)+4*J(2*w,t_cb))
+
+def R1_t_model4_CH2(B,t_cf,t_cb,t_cm,s2,pb): #Total T1 relaxation Model 3 for CH2 group
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*3/10*b_hh**2*(s2*(J(w,t_cb)+4*J(2*w,t_cb))+(1-s2)*(J(w,t_cb1)+4*J(2*w,t_cb1)))
+
+def R1_model_freeCH2(B,t_cf): #Total T1 relaxation Model 3 for CH2 group
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))
