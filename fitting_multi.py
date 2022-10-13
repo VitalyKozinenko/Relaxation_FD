@@ -16,11 +16,11 @@ data_ar=np.array(data_list)
 
 x=data_ar[:,0]
 #y=1/data_ar[:,[5,9,13,17]]
-#y=data_ar[:,[5,9,13,17]] #T1 relaxation data
-y=data_ar[:,[7,11,15,19]] #T1 relaxation data
+y=data_ar[:,[5,9,13,17]] #T1 relaxation data
+#y=data_ar[:,[7,11,15,19]] #Ts relaxation data
 #y_err=data_ar[:,[6,10,14,18]]/(data_ar[:,[5,9,13,17]]**2)
-#y_err=data_ar[:,[6,10,14,18]] #T1 relaxation data error
-y_err=data_ar[:,[8,12,16,20]] #T1 relaxation data error
+y_err=data_ar[:,[6,10,14,18]] #T1 relaxation data error
+#y_err=data_ar[:,[8,12,16,20]] #Ts relaxation data error
 #print(y_err)
 
 print('data\n')
@@ -37,11 +37,12 @@ def model_dataset(params, i, x):
     t_cm = params[f't_cm_{i+1}']
     s2 = params[f's2_{i+1}']
     pb = params[f'pb_{i+1}']
+    #d = params[f'd_{i+1}']
     #A = params[f'A_{i+1}']
     #pbA = params[f'pbA_{i+1}']
-    Rslow = params[f'Rslow_{i+1}']
+    #Rslow = params[f'Rslow_{i+1}']
     #Rslow2 = params[f'Rslow2_{i+1}']
-    return 1/(Rs_t_model5_CH2(x,t_cf,t_cb,t_cm,pb,Rslow,s2))
+    return 1/(R1_t_model4_CH2(x,t_cf,t_cb,t_cm,s2,pb))
 
 def residual(params, x, data, eps = None):
     #Calculate total residual for fits of R1 to several data sets.
@@ -62,14 +63,15 @@ def residual(params, x, data, eps = None):
 
 params = Parameters()
 for iy, y in enumerate(data_y):
-    params.add(f't_cf_{iy+1}', value=0.05*1e-9, min=1e-14, max=1e-7)
-    params.add(f't_cb_{iy+1}', value=40*1e-9, min=1e-14, max=1e-7)
-    params.add(f't_cm_{iy+1}', value=1*1e-9, min=1e-14, max=1e-7)
-    params.add(f's2_{iy+1}', value=0.1, min=1e-16, max=1)
-    params.add(f'pb_{iy+1}', value=1e-4, min=1e-9, max=1)    
+    params.add(f't_cf_{iy+1}', value=0.05*1e-9, min=1e-14, max=1e-6)
+    params.add(f't_cb_{iy+1}', value=40*1e-9, min=1*1e-14, max=1e-6)
+    params.add(f't_cm_{iy+1}', value=1*1e-9, min=1e-14, max=1e-6)
+    params.add(f's2_{iy+1}', value=0.01, min=1e-16, max=1)
+    params.add(f'pb_{iy+1}', value=1e-3, min=1e-9, max=1)
+    #params.add(f'd_{iy+1}', value=1e-2, min=1e-9, max=1)        
     #params.add(f'A_{iy+1}', value=1e+6, min=1e+3, max=1e+16)
     #params.add(f'pbA_{iy+1}', value=1e+6, min=1e+3, max=1e+16)
-    params.add(f'Rslow_{iy+1}', value=1e-1, min=1e-4, max=1e+3)
+    #params.add(f'Rslow_{iy+1}', value=1e-1, min=1e-4, max=1e+3)
     #params.add(f'Rslow2_{iy+1}', value=1e+2, min=1e-4, max=1e+3)
 
 for iy in (2, 3, 4):
@@ -77,18 +79,21 @@ for iy in (2, 3, 4):
     params[f't_cb_{iy}'].expr = 't_cb_1'
     params[f't_cm_{iy}'].expr = 't_cm_1'
     params[f's2_{iy}'].expr = 's2_1'
+    params[f'pb_{iy}'].expr = f'2*pb_{iy-1}'
     #params[f'A_{iy}'].expr = 'A_1'
-    params[f'Rslow_{iy}'].expr = 'Rslow_1'
+    #params[f'Rslow_{iy}'].expr = 'Rslow_1'
     #params[f'Rslow2_{iy}'].expr = 'Rslow2_1'
+
+
 
 #out = minimize(residual, params, args=(x, data_y),method='differential_evolution')
 out = minimize(residual, params, args=(x, data_y),method='leastsq')
 report_fit(out.params)
 
-print('-------------------------------')
-print('Parameter    Value       Stderr')
-for name, param in out.params.items():
-    print(f'{name:7s} {param.value:.2E} {param.stderr:.2E}')
+#print('-------------------------------')
+#print('Parameter    Value       Stderr')
+#for name, param in out.params.items():
+#    print(f'{name:7s} {param.value:.2E} {param.stderr:.2E}')
 
 ###############################################################################
 # Plot the data sets and fits

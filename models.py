@@ -136,6 +136,32 @@ def R1_t_model5_CH2(B,t_cf,t_cb,t_cm,s2,pb,A): #Total T1 relaxation Model 5 for 
     return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*(3/10*b_hh**2*(s2*(J(w,t_cb)+4*J(2*w,t_cb))+(1-s2)*(J(w,t_cb1)+4*J(2*w,t_cb1)))
             +A*(s2*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))+(1-s2)*(J(0,t_cb1)+3*J(w,t_cb1)+6*J(2*w,t_cb1))))
 
+def R1_t_model6_CH2(B,t_cf,t_cb,pb,pbd): #Total T1 relaxation Model 6 for CH2 group - intra in free and bound, two forms of bound form
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    t_cbd=2*t_cb
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*3/10*b_hh**2*(J(w,t_cb)+4*J(2*w,t_cb))+pbd*3/10*b_hh**2*(J(w,t_cbd)+4*J(2*w,t_cbd))
+
+def R1_t_model7_CH2(B,t_cf,t_cb,t_cm,s2,pb,d): #Total T1 relaxation Model 7 for CH2 group - intra in free and bound, two forms of bound form
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    t_cbd=2*t_cb
+
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    t_cbd1=(t_cbd*t_cm)/(t_cbd+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return (3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))
+            +pb*3/10*b_hh**2*(s2*(J(w,t_cb)+4*J(2*w,t_cb))+(1-s2)*(J(w,t_cb1)+4*J(2*w,t_cb1)))
+            +d*pb*3/10*b_hh**2*(s2*(J(w,t_cb)+4*J(2*w,t_cb))+(1-s2)*(J(w,t_cbd1)+4*J(2*w,t_cbd1))))
+
 
 def R1_model_freeCH2(B,t_cf): #Total T1 relaxation Model 3 for CH2 group
     w=B*gamma
