@@ -30,21 +30,25 @@ data_err=np.transpose(y_err)
 print(data_y)
 print(np.shape(data_y))
 
-def model_dataset(params, i, x):
+conc = np.array([50, 100, 200, 300])/20000
+
+
+def model_dataset(params, i, x, c):
     #Calculate R1 lineshape from parameters for data set.
     t_cf = params[f't_cf_{i+1}']
     t_cb = params[f't_cb_{i+1}']
     t_cm = params[f't_cm_{i+1}']
     s2 = params[f's2_{i+1}']
-    pb = params[f'pb_{i+1}']
+    #pb = params[f'pb_{i+1}']
+    p = params[f'p_{i+1}']
     #d = params[f'd_{i+1}']
     #A = params[f'A_{i+1}']
     #pbA = params[f'pbA_{i+1}']
     #Rslow = params[f'Rslow_{i+1}']
     #Rslow2 = params[f'Rslow2_{i+1}']
-    return 1/(R1_t_model4_CH2(x,t_cf,t_cb,t_cm,s2,pb))
+    return 1/(R1_t_model5_CH2(x,c,t_cf,t_cb,t_cm,s2,p))
 
-def residual(params, x, data, eps = None):
+def residual(params, x,c, data, eps = None):
     #Calculate total residual for fits of R1 to several data sets.
     ndata, _ = data.shape
     resid = 0.0*data[:]
@@ -52,12 +56,12 @@ def residual(params, x, data, eps = None):
     # make residual per data set
     if eps is None:
         for i in range(ndata):     
-            resid[i, :] = data[i, :] - model_dataset(params, i, x)
+            resid[i, :] = data[i, :] - model_dataset(params, i, x, c[i])
          # now flatten this to a 1D array, as minimize() needs
         return resid.flatten()
      # make residual per data set
     for i in range(ndata):     
-        resid[i, :] = (data[i, :] - model_dataset(params, i, x))/eps[i, :]
+        resid[i, :] = (data[i, :] - model_dataset(params, i, x,c[i]))/eps[i, :]
     # now flatten this to a 1D array, as minimize() needs
     return resid.flatten()
 
@@ -67,7 +71,8 @@ for iy, y in enumerate(data_y):
     params.add(f't_cb_{iy+1}', value=40*1e-9, min=1*1e-14, max=1e-6)
     params.add(f't_cm_{iy+1}', value=1*1e-9, min=1e-14, max=1e-6)
     params.add(f's2_{iy+1}', value=0.01, min=1e-16, max=1)
-    params.add(f'pb_{iy+1}', value=1e-3, min=1e-9, max=1)
+    #params.add(f'pb_{iy+1}', value=1e-3, min=1e-9, max=1)
+    params.add(f'p_{iy+1}', value=1e-3, min=1e-9, max=1)
     #params.add(f'd_{iy+1}', value=1e-2, min=1e-9, max=1)        
     #params.add(f'A_{iy+1}', value=1e+6, min=1e+3, max=1e+16)
     #params.add(f'pbA_{iy+1}', value=1e+6, min=1e+3, max=1e+16)
@@ -79,7 +84,7 @@ for iy in (2, 3, 4):
     params[f't_cb_{iy}'].expr = 't_cb_1'
     params[f't_cm_{iy}'].expr = 't_cm_1'
     params[f's2_{iy}'].expr = 's2_1'
-    params[f'pb_{iy}'].expr = f'2*pb_{iy-1}'
+    params[f'p_{iy}'].expr = 'p_1'
     #params[f'A_{iy}'].expr = 'A_1'
     #params[f'Rslow_{iy}'].expr = 'Rslow_1'
     #params[f'Rslow2_{iy}'].expr = 'Rslow2_1'
@@ -87,13 +92,13 @@ for iy in (2, 3, 4):
 
 
 #out = minimize(residual, params, args=(x, data_y),method='differential_evolution')
-out = minimize(residual, params, args=(x, data_y),method='leastsq')
+out = minimize(residual, params, args=(x,conc, data_y),method='leastsq')
 report_fit(out.params)
 
-#print('-------------------------------')
-#print('Parameter    Value       Stderr')
-#for name, param in out.params.items():
-#    print(f'{name:7s} {param.value:.2E} {param.stderr:.2E}')
+print('-------------------------------')
+print('Parameter    Value       Stderr')
+for name, param in out.params.items():
+    print(f'{name:7s} {param.value:.2E} {param.stderr:.2E}')
 
 ###############################################################################
 # Plot the data sets and fits
@@ -102,7 +107,7 @@ gs = fig1.add_gridspec(1,4, wspace=0)
 axs = gs.subplots(sharex=True, sharey=True)
 x1 = np.logspace(-3, 1.5, 100)
 for i in range(4):
-    y_fit = model_dataset(out.params, i, x1)
+    y_fit = model_dataset(out.params, i, x1,conc[i])
     axs[i].semilogx(x1, y_fit, '-')
     axs[i].errorbar(x, data_y[i, :], yerr = data_err[i, :],marker='o',capsize=5)
 
