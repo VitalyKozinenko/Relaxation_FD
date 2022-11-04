@@ -28,6 +28,10 @@ b_hh2=-2*pi*10000;
 def J1(w,t_c): 
     return t_c/(1+w**2*t_c**2)
 
+####################################################
+# T1 relaxation models 
+####################################################
+
 #R1 relaxation in free
 def R1_f(B,t_c,J):
     w=B*gamma
@@ -38,15 +42,9 @@ def R1_b(B,t_c,J):
     w=B*gamma
     return 1/10*b_hh1**2*(J(0,t_c)+3*J(w,t_c)+6*J(2*w,t_c))
 
-#Total T1 relaxation model 1
-def T1_t_model1(B,t_cf,t_cb,pbA):
-    w=B*gamma
-
-    def J(w,t_c): 
-        return t_c/(1+w**2*t_c**2)
-
-    return 1/(3/10*b_hh1**2*(J(w,t_cf)+4*J(2*w,t_cf))+1/10*pbA*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb)))
-
+#########################
+# Models for CH3
+#########################
      
 def R1_t_model1(B,t_cf,t_cb,pbA): #Total T1 relaxation Model 1 from Ziqing Wang 2021 - intra dipole in free and inter dipole in bound
     w=B*gamma
@@ -83,32 +81,273 @@ def R1_t_model3(B,t_cf,t_cb,pb,A): #Total T1 relaxation Model 3 from Ziqing Wang
 
     return (1-pb)*S2tms*Amethyl*(J(w,t_cf)+4*J(2*w,t_cf))+pb*(A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))+S2tms*Amethyl*(J(w,t_cb)+4*J(2*w,t_cb)))
 
-def R1_t_model1_CH2(B,t_cf,t_cb,pbA): #Total T1 relaxation Model 1 for CH2 group
+#########################
+# Models for CH2
+#########################
+
+def R1_t_model1_CH2(B,t_cf,t_cb,pb): #Total T1 relaxation Model 3 for CH2 group - intra in free and bound
     w=B*gamma
-    b_hh=-mu0/pi*h_bar*gamma**2/r_hh**3
-    A_CH2=3/32*b_hh**2
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
 
     def J(w,t_c): 
-        return 2/5*t_c/(1+w**2*t_c**2)
+        return t_c/(1+w**2*t_c**2)
 
-    return A_CH2*(J(w,t_cf)+4*J(2*w,t_cf))+pbA*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*3/10*b_hh**2*(J(w,t_cb)+4*J(2*w,t_cb))
 
-def R1_t_model2_CH2(B,t_cf,t_cb,pb,A): #Total T1 relaxation Model 2 for CH2 group
+def R1_t_model2_CH2(B,t_cf,t_cb,pbA): #Total T1 relaxation Model 1 for CH2 group - intra in free and inter in bound
     w=B*gamma
-    b_hh=-mu0/pi*h_bar*gamma**2/r_hh**3
-    A_CH2=3/32*b_hh**2
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
 
     def J(w,t_c): 
-        return 2/5*t_c/(1+w**2*t_c**2)
+        return t_c/(1+w**2*t_c**2)
 
-    return (1-pb)*A_CH2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*(A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))+A_CH2*(J(w,t_cb)+4*J(2*w,t_cb)))
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+pbA*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))
 
-def R1_t_model3_CH2(B,t_cf,t_cb,pb): #Total T1 relaxation Model 3 for CH2 group
+
+def R1_t_model3_CH3(B,t_cf,t_cb,pb,A): #Total T1 relaxation Model 2 for CH2 group - intra in free and inter and intra in bound
     w=B*gamma
-    b_hh=-mu0/pi*h_bar*gamma**2/r_hh**3
-    A_CH2=3/32*b_hh**2
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
 
     def J(w,t_c): 
-        return 2/5*t_c/(1+w**2*t_c**2)
+        return t_c/(1+w**2*t_c**2)
 
-    return (1-pb)*A_CH2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*A_CH2*(J(w,t_cb)+4*J(2*w,t_cb))
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*(A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))+3/10*b_hh**2*(J(w,t_cb)+4*J(2*w,t_cb)))
+
+
+def R1_t_model4_CH2(B,t_cf,t_cb,t_cm,s2,pb): #Total T1 relaxation Model 4 for CH2 group - intra in free and intra in bound with order parameter S^2 and correlation time t_cm
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+pb*3/10*b_hh**2*(s2*(J(w,t_cb)+4*J(2*w,t_cb))+(1-s2)*(J(w,t_cb1)+4*J(2*w,t_cb1)))
+
+def R1_model_freeCH2(B,t_cf): #Total T1 relaxation Model 3 for CH2 group
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))
+
+
+####################################################
+# T1 relaxation models using real protein concentrations
+####################################################
+def R1_t_model5_CH2(B,c,t_cf,t_cb,t_cm,s2,p): #Total T1 relaxation Model 4 for CH2 group - intra in free and intra in bound with order parameter S^2 and correlation time t_cm
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+c*p*3/10*b_hh**2*(s2*(J(w,t_cb)+4*J(2*w,t_cb))+(1-s2)*(J(w,t_cb1)+4*J(2*w,t_cb1)))
+
+def R1_t_model6_CH2(B,c,t_cf,t_cb,t_cm,s2,p,A): #Total T1 relaxation Model 4 for CH2 group - intra in free and intra in bound with order parameter S^2 and correlation time t_cm
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+c*p*(s2*(3/10*b_hh**2*(J(w,t_cb)+4*J(2*w,t_cb))+A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb)))
+    +(1-s2)*(3/10*b_hh**2*(J(w,t_cb1)+4*J(2*w,t_cb1))+A*(J(0,t_cb1)+3*J(w,t_cb1)+6*J(2*w,t_cb1))))
+
+def R1_t_model7_CH2(B,c,t_cf,t_cb,t_cm,s2,p,A): #Total T1 relaxation Model 4 for CH2 group - intra in free and intra in bound with order parameter S^2 and correlation time t_cm
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+c*p*(s2*(A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb)))
+    +(1-s2)*(A*(J(0,t_cb1)+3*J(w,t_cb1)+6*J(2*w,t_cb1))))
+
+
+def R1_t_model8_CH2(B,c,t_cf,t_cb,p,A): #Total T1 relaxation Model 4 for CH2 group - intra in free and intra in bound with order parameter S^2 and correlation time t_cm
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return 3/10*b_hh**2*(J(w,t_cf)+4*J(2*w,t_cf))+c*p*((3/10*b_hh**2*(J(w,t_cb)+4*J(2*w,t_cb))+A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))))
+
+def R1_t_model9_CH2(B,c,t_cf,t_cb,t_cm,s2,p,A): #Total T1 relaxation Model 4 for CH2 group - intra in free and intra in bound with order parameter S^2 and correlation time t_cm
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    return 1/10*b_hh**2*(J(0,t_cf)+3*J(w,t_cf)+6*J(2*w,t_cf))+c*p*(s2*(3/10*b_hh**2*(J(w,t_cb)+4*J(2*w,t_cb))+0*A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb)))
+    +(1-s2)*(3/10*b_hh**2*(J(w,t_cb1)+4*J(2*w,t_cb1))+0*A*(J(0,t_cb1)+3*J(w,t_cb1)+6*J(2*w,t_cb1))))
+
+####################################################
+# Tlls relaxation models 
+####################################################
+
+def Rs_t_model1_CH2(B,t_cf,t_cb,pbA,Rslow): 
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    theta=np.arctan((2*pi*J_HH)/(w*delta_CS))/2
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    def R1(t_c):
+        return 3/2*t_c*b_hh**2
+
+    def Rs(Rslow,t_c):
+        return (20+2*np.cos(4*theta)- np.sqrt(2*(81-80*np.cos(4*theta)+np.cos(8*theta))))/60*R1(t_c)+Rslow
+
+    return Rs(Rslow,t_cf)+pbA*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))
+
+def Rs_t_model2_CH2(B,t_cf,t_cb,pb,Rslow):
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    theta=np.arctan((2*pi*J_HH)/(w*delta_CS))/2
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    def R1(t_c):
+        return 3/2*t_c*b_hh**2
+
+    def Rs(Rslow,t_c):
+        return (20+2*np.cos(4*theta)- np.sqrt(2*(81-80*np.cos(4*theta)+np.cos(8*theta))))/60*R1(t_c)+Rslow
+
+    return Rs(Rslow,t_cf)+pb*3/10*b_hh**2*(J(w,t_cb)+4*J(2*w,t_cb))
+
+def Rs_t_model3_CH2(B,t_cf,t_cb,A,pb,Rslow1): 
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    theta=np.arctan((2*pi*J_HH)/(w*delta_CS))/2
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    def R1(t_c):
+        return 3/10*b_hh**2*(J(w,t_c)+4*J(2*w,t_c))
+
+    def Rs(Rslow,t_c):
+        return (20+2*np.cos(4*theta)- np.sqrt(2*(81-80*np.cos(4*theta)+np.cos(8*theta))))/60*R1(t_c)+Rslow
+
+    return Rs(Rslow1,t_cf)+pb*(A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb))+ Rs(Rslow1,t_cb))
+
+def Rs_t_model4_CH2(B,t_cf,t_cb,t_cm,pb,Rslow,s2): 
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    theta=np.arctan((2*pi*J_HH)/(w*delta_CS))/2
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    def R1(t_c):
+        return 3/2*t_c*b_hh**2
+
+    def Rs(Rslow,t_c):
+        return (20+2*np.cos(4*theta)- np.sqrt(2*(81-80*np.cos(4*theta)+np.cos(8*theta))))/60*R1(t_c)+Rslow
+
+    return Rs(Rslow,t_cf)+pb*3/10*b_hh**2*(s2*(J(w,t_cb)+4*J(2*w,t_cb))+(1-s2)*(J(w,t_cb1)+4*J(2*w,t_cb1)))
+
+def Rs_t_model5_CH2(B,t_cf,t_cb,t_cm,pb,Rslow,s2): 
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    theta=np.arctan((2*pi*J_HH)/(w*delta_CS))/2
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    def R1(t_c):
+        return 3/10*b_hh**2*(J(w,t_c)+4*J(2*w,t_c))
+
+    def Rs(Rslow,t_c):
+        return (20+2*np.cos(4*theta)- np.sqrt(2*(81-80*np.cos(4*theta)+np.cos(8*theta))))/60*R1(t_c)+Rslow
+
+    return Rs(Rslow,t_cf)+pb*(s2*(Rs(Rslow,t_cb)+3/10*b_hh**2*(J(w,t_cb)+4*J(2*w,t_cb)))+(1-s2)*(Rs(Rslow,t_cb1)+3/10*b_hh**2*(J(w,t_cb1)+4*J(2*w,t_cb1))))
+
+####################################################
+# Tlls relaxation models using real protein concentrations
+####################################################
+def Rs_t_model6_CH2(B,c,t_cf,t_cb,t_cm,p,Rslow,s2,A): 
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    theta=np.arctan((2*pi*J_HH)/(w*delta_CS))/2
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    def R1(t_c):
+        return 3/10*b_hh**2*(J(w,t_c)+4*J(2*w,t_c))
+
+    def Rs(Rslow,t_c):
+        return (20+2*np.cos(4*theta)- np.sqrt(2*(81-80*np.cos(4*theta)+np.cos(8*theta))))/60*R1(t_c)+Rslow
+
+    return Rs(Rslow,t_cf)+p*c*(s2*(Rs(Rslow,t_cb)+A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb)))+(1-s2)*(Rs(Rslow,t_cb1)+A*(J(0,t_cb1)+3*J(w,t_cb1)+6*J(2*w,t_cb1))))
+
+def Rs_t_model7_CH2(B,c,t_cf,t_cb,t_cm,p,Rslow,s2,A): 
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    theta=np.arctan((2*pi*J_HH)/(w*delta_CS))/2
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    def R1(t_c):
+        return 3/10*b_hh**2*(J(w,t_c)+4*J(2*w,t_c))
+
+    def Rs(Rslow,t_c):
+        return (20+2*np.cos(4*theta)- np.sqrt(2*(81-80*np.cos(4*theta)+np.cos(8*theta))))/60*R1(t_c)+Rslow
+
+    return Rs(Rslow,t_cf)+p*c*(s2*(A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb)))+(1-s2)*(A*(J(0,t_cb1)+3*J(w,t_cb1)+6*J(2*w,t_cb1))))
+
+def Rs_t_model8_CH2(B,c,t_cf,t_cb,t_cm,p,Rslow,Rslow2,s2): 
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    theta=np.arctan((2*pi*J_HH)/(w*delta_CS))/2
+    t_cb1=(t_cb*t_cm)/(t_cb+t_cm)
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    def R1(t_c):
+        return 3/10*b_hh**2*(J(w,t_c)+4*J(2*w,t_c))
+
+    def Rs(Rslow,t_c):
+        return (20+2*np.cos(4*theta)- np.sqrt(2*(81-80*np.cos(4*theta)+np.cos(8*theta))))/60*R1(t_c)+Rslow
+
+    return Rs(Rslow,t_cf)+p*c*(s2*Rs(Rslow2,t_cb)+(1-s2)*(Rs(Rslow2,t_cb1)))
+
+def Rs_t_model9_CH2(B,c,t_cf,t_cb,p,Rslow,A): 
+    w=B*gamma
+    b_hh=-mu0/(4*pi)*h_bar*gamma**2/r_hh**3
+    theta=np.arctan((2*pi*J_HH)/(w*delta_CS))/2
+
+    def J(w,t_c): 
+        return t_c/(1+w**2*t_c**2)
+
+    def R1(t_c):
+        return 3/10*b_hh**2*(J(w,t_c)+4*J(2*w,t_c))
+
+    def Rs(Rslow,t_c):
+        return (20+2*np.cos(4*theta)- np.sqrt(2*(81-80*np.cos(4*theta)+np.cos(8*theta))))/60*R1(t_c)+Rslow
+
+    return Rs(Rslow,t_cf)+p*c*(Rs(Rslow,t_cb)+A*(J(0,t_cb)+3*J(w,t_cb)+6*J(2*w,t_cb)))
+
