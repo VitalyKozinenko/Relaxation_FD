@@ -8,8 +8,10 @@ import lmfit
 from lmfit import Model, Parameters, minimize, report_fit
 import corner
 from tqdm import tqdm
+import csv
 
-data_init = pandas.read_csv("./ALA-GLY and HSA FD.csv")
+
+data_init = pandas.read_csv("./ALA-GLY and HSA FD 2.csv")
 data_list = data_init.values.tolist()
 data_ar=np.array(data_list)
 #print(data_ar[:,[0,1]])
@@ -36,7 +38,7 @@ conc = np.array([50, 100, 200, 300])/20000
 
 
 def model_dataset_Ts(params, x, c):
-    #Calculate R1 lineshape from parameters for data set.
+    #Calculate Rs lineshape from parameters for data set.
     t_cf = params['t_cf']
     t_cb = params['t_cb']
     #t_cm = params['t_cm']
@@ -134,32 +136,42 @@ lmfit.report_fit(out1.params)
 """
 ###############################################################################
 # Plot the data sets and fits
-fig2 = plt.figure(figsize=(10, 6),dpi=100)
+fig2 = plt.figure(figsize=(15, 6),dpi=100)
 gs = fig2.add_gridspec(2,4, wspace=0.3,hspace=0)
-axs= gs.subplots(sharex=True, sharey=False)
+axs = gs.subplots(sharex=True, sharey=False)
 x1 = np.logspace(-3, 1.5, 100)
+np.savetxt("Bcalc.csv", x1, delimiter=" ")
+output=np.empty([x1.shape[0], 8])
+print(output[:,0])
 for i in range(0,4):
     y_fit1 = model_dataset_T1(out1.params, x1,conc[i])
+    output[:,i]=y_fit1
+   # writer.writerow(y_fit1)
     axs[0,i].semilogx(x1, y_fit1, '-')
     axs[0,i].errorbar(x, data_y[i, :], yerr = data_err[i, :],marker='o',capsize=5)
     axs[0,i].set_ylim(0.7, 1.9)
     y_fit2 = model_dataset_Ts(out1.params, x1,conc[i])
+    output[:,i+4]=y_fit2
     axs[1,i].semilogx(x1, y_fit2, '-')
     axs[1,i].errorbar(x, data_y[i+4, :], yerr = data_err[i+4, :],marker='o',capsize=5)
-    axs[1,i].set_ylim(3, 15)
+    axs[1,i].set_ylim(2, 15)
 
+#print(output)
+np.savetxt("calculated.csv", output, delimiter=" ")
 
 axs[0,0].set_ylabel('T1 relaxation time, s')
 axs[1,0].set_ylabel('Tlls relaxation time, s')
+axs[0,0].set_xticks([1e-3,1e-2,1e-1,1e-0,1e+1])
 
 for ax in axs.flat:
     ax.set(xlabel='B, T')
 
 
-fig2.suptitle('Tlls relaxation FD')
+fig2.suptitle('T1 and Tlls relaxation FD')
 #ax.set_xlabel('B, T')
 #ax.set_ylabel('T1 relaxation time, s')
 fig2.savefig('Fitting.png')
 
+#f.close()
 
 plt.show()
