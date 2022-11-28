@@ -11,7 +11,8 @@ from tqdm import tqdm
 import csv
 
 
-data_init = pandas.read_csv("./ALA-GLY and HSA FD.csv")
+#data_init = pandas.read_csv("./ALA-GLY and HSA FD 3.csv")
+data_init = pandas.read_csv("./Citrate and HSA FD 2.csv")
 data_list = data_init.values.tolist()
 data_ar=np.array(data_list)
 #print(data_ar[:,[0,1]])
@@ -20,11 +21,13 @@ x=data_ar[:,0]
 #y=1/data_ar[:,[5,9,13,17]]
 #y=data_ar[:,[5,9,13,17]] #T1 relaxation data
 #y=data_ar[:,[7,11,15,19]] #Ts relaxation data
-y=data_ar[:,[5,9,13,17,7,11,15,19]] #T1 and Ts relaxation data
+#y=data_ar[:,[1,5,9,13,17,3,7,11,15,19]] #T1 and Ts relaxation data ALA-GLY
+y=data_ar[:,[1,5,9,13,3,7,11,15]] #T1 and Ts relaxation data Citrate
 #y_err=data_ar[:,[6,10,14,18]]/(data_ar[:,[5,9,13,17]]**2)
 #y_err=data_ar[:,[6,10,14,18]] #T1 relaxation data error
 #y_err=data_ar[:,[8,12,16,20]] #Ts relaxation data error\
-y_err=data_ar[:,[6,10,14,18,8,12,16,20]] #T1 and Ts relaxation data error
+#y_err=data_ar[:,[2,6,10,14,18,4,8,12,16,20]] #T1 and Ts relaxation data error ALA-GLY
+y_err=data_ar[:,[2,6,10,14,4,8,12,16]] #T1 and Ts relaxation data error Citrate
 #print(y_err)
 
 print('data\n')
@@ -34,23 +37,8 @@ data_err=np.transpose(y_err)
 #print(data_y)
 #print(np.shape(data_y))
 
-conc = np.array([50, 100, 200, 300])/20000
-
-
-def model_dataset_Ts(params, x, c):
-    #Calculate Rs lineshape from parameters for data set.
-    t_cf = params['t_cf']
-    t_cb = params['t_cb']
-    #t_cm = params['t_cm']
-    #s2 = params['s2']
-    #pb = params[f'pb_{i+1}']
-    p = params['p']
-    #d = params[f'd_{i+1}']
-    A = params['A']
-    #pbA = params[f'pbA_{i+1}']
-    Rslow = params['Rslow']
-    #Rslow2 = params['Rslow2']
-    return 1/(Rs_t_model9_CH2(x,c,t_cf,t_cb,p,Rslow,A))
+#conc = np.array([0, 50, 100, 200, 300])/20000
+conc = np.array([0,25,50,75])/20000
 
 def model_dataset_T1(params, x, c):
     #Calculate R1 lineshape from parameters for data set.
@@ -58,13 +46,35 @@ def model_dataset_T1(params, x, c):
     t_cb = params['t_cb']
     #t_cm = params['t_cm']
     #s2 = params['s2']
+    #d_csa = params['d_csa']
     #pb = params[f'pb_{i+1}']
     p = params['p']
     #d = params[f'd_{i+1}']
     A = params['A']
     #pbA = params[f'pbA_{i+1}']
-    return 1/(R1_t_model8_CH2(x,c,t_cf,t_cb,p,A))
+    #return 1/(R1_t_model2v2_CH2(x,c,t_cf,t_cb,t_cm,d_csa,s2,p,A))
+    #return 1/(R1_t_model2_CH2(x,c,t_cf,t_cb,t_cm,s2,p,A))
+    #return 1/(R1_t_model1v2_CH2(x,c,t_cf,t_cb,d_csa,p,A))
+    return 1/(R1_t_model1_CH2(x,c,t_cf,t_cb,p,A))
 
+def model_dataset_Ts(params, x, c):
+    #Calculate Rs lineshape from parameters for data set.
+    t_cf = params['t_cf']
+    t_cb = params['t_cb']
+    #t_cm = params['t_cm']
+    #s2 = params['s2']
+    #d_csa = params['d_csa']
+    #pb = params[f'pb_{i+1}']
+    p = params['p']
+    #d = params[f'd_{i+1}']
+    A = params['A']
+    #pbA = params[f'pbA_{i+1}']
+    Rslow = params['Rslow']
+    #Rslow2 = params['Rslow2']
+    #return 1/(Rs_t_model2v2_CH2(x,c,t_cf,t_cb,t_cm,p,Rslow,d_csa,s2,A))
+    #return 1/(Rs_t_model2_CH2(x,c,t_cf,t_cb,t_cm,p,Rslow,s2,A))
+    #return 1/(Rs_t_model1v2_CH2(x,c,t_cf,t_cb,p,Rslow,d_csa,A))
+    return 1/(Rs_t_model1_CH2(x,c,t_cf,t_cb,p,Rslow,A))
 
 def residual(params, x,c, data, eps = None):
     #Calculate total residual for fits of R1 to several data sets.
@@ -73,29 +83,30 @@ def residual(params, x,c, data, eps = None):
 
     # make residual per data set
     if eps is None:
-        for i in range(0,4):     
+        for i in range(0,ndata//2):     
             resid[i, :] = data[i, :] - model_dataset_T1(params, x, c[i])
-        for i in range(4,8):     
-           resid[i, :] = data[i, :] - model_dataset_Ts(params, x, c[i-4])
+        for i in range(ndata//2,ndata):     
+           resid[i, :] = data[i, :] - model_dataset_Ts(params, x, c[i-ndata//2])
          # now flatten this to a 1D array, as minimize() needs
         return resid.flatten()
      # make residual per data set
-    for i in range(0,4):     
+    for i in range(0,ndata//2):     
         resid[i, :] = (data[i, :] - model_dataset_T1(params, x, c[i]))/eps[i, :]
-    for i in range(4,8):   
-        resid[i, :] = (data[i, :] - model_dataset_Ts(params, x, c[i-4]))/eps[i, :]
+    for i in range(ndata//2,ndata):   
+        resid[i, :] = (data[i, :] - model_dataset_Ts(params, x, c[i-ndata//2]))/eps[i, :]
     # now flatten this to a 1D array, as minimize() needs
     return resid.flatten()
 
 params = Parameters()
-params.add('t_cf', value=20*1e-12, min=1e-12, max=1e-9)
+params.add('t_cf', value=10*1e-12, min=1e-12, max=1e-9)
 params.add('t_cb', value=40*1e-9, min=1*1e-12, max=1e-7)
-#params.add('t_cm', value=2*1e-9, min=1e-11, max=1e-8)
+#params.add('t_cm', value=1*1e-9, min=1e-10, max=1e-8)
+#params.add('d_csa', value=1e-7, min=1e-9, max=1e-4)
 #params.add('s2', value=0.01, min=1e-3, max=1)
 #params.add(f'pb_{iy+1}', value=1e-3, min=1e-9, max=1)
-params.add('p', value=1e-1, min=1e-3, max=1)
+params.add('p', value=1e-2, min=1e-4, max=10)
 #params.add(f'd_{iy+1}', value=1e-2, min=1e-9, max=1)        
-params.add('A', value=1e+6, min=1e+5, max=1e+9)
+params.add('A', value=1e+8, min=1e+5, max=1e+10)
 #params.add(f'pbA_{iy+1}', value=1e+6, min=1e+3, max=1e+16)
 params.add('Rslow', value=1e-1, min=1e-3, max=1)
 #params.add('Rslow2', value=1e+3, min=1e-2, max=1e+6)
@@ -136,25 +147,25 @@ lmfit.report_fit(out1.params)
 """
 ###############################################################################
 # Plot the data sets and fits
-fig2 = plt.figure(figsize=(15, 6),dpi=100)
-gs = fig2.add_gridspec(2,4, wspace=0.3,hspace=0)
+fig2 = plt.figure(figsize=(16, 6),dpi=100)
+gs = fig2.add_gridspec(2,conc.size, wspace=0.3,hspace=0)
 axs = gs.subplots(sharex=True, sharey=False)
 x1 = np.logspace(-3, 1.5, 100)
 np.savetxt("Bcalc.csv", x1, delimiter=" ")
-output=np.empty([x1.shape[0], 8])
+output=np.empty([x1.shape[0], conc.size*2])
 #print(output[:,0])
-for i in range(0,4):
+for i in range(0,conc.size):
     y_fit1 = model_dataset_T1(out1.params, x1,conc[i])
     output[:,i]=y_fit1
    # writer.writerow(y_fit1)
     axs[0,i].semilogx(x1, y_fit1, '-')
     axs[0,i].errorbar(x, data_y[i, :], yerr = data_err[i, :],marker='o',capsize=5)
-    axs[0,i].set_ylim(0.7, 1.9)
+    axs[0,i].set_ylim(0.2, 1.7)
     y_fit2 = model_dataset_Ts(out1.params, x1,conc[i])
-    output[:,i+4]=y_fit2
+    output[:,i+conc.size]=y_fit2
     axs[1,i].semilogx(x1, y_fit2, '-')
-    axs[1,i].errorbar(x, data_y[i+4, :], yerr = data_err[i+4, :],marker='o',capsize=5)
-    axs[1,i].set_ylim(2, 15)
+    axs[1,i].errorbar(x, data_y[i+conc.size, :], yerr = data_err[i+conc.size, :],marker='o',capsize=5)
+    axs[1,i].set_ylim(1, 8)
 
 #print(output)
 np.savetxt("calculated.csv", output, delimiter=" ")
